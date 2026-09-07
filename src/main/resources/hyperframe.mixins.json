@@ -3,7 +3,9 @@
   "package": "com.hyperframe.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [],
-  "client": [],
+  "client": [
+    "EntityRendererMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
