@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "hyperframe",
+  "version": "${version}",
+  "name": "HyperFrame",
+  "description": "Extreme performance and optimization engine for Minecraft.",
+  "authors": [
+    "HyperFrame Team"
+  ],
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.hyperframe.HyperFrame"
+    ]
+  },
+  "mixins": [
+    "hyperframe.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "~1.21.11",
+    "fabric-api": "*"
+  }
+}
