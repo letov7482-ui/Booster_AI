@@ -55,7 +55,7 @@ public final class HyperFrameCommand {
                                             }
 
                                             return 1;
-                                        }
+                                        })
                         )
         );
     }
