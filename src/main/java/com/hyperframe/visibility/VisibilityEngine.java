@@ -2,25 +2,20 @@ package com.hyperframe.visibility;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Box;
 
-import java.util.Map;
-import java.util.WeakHashMap;
-
 public final class VisibilityEngine {
-
-    private static final Map<Entity, CacheEntry> CACHE =
-            new WeakHashMap<>();
 
     private VisibilityEngine() {
     }
 
     public static boolean shouldRenderEntity(
-            MinecraftClient client,
             Entity entity,
-            Frustum frustum
+            Frustum frustum,
+            double x,
+            double y,
+            double z
     ) {
         if (!VisibilityConfig.ENABLED) {
             return true;
@@ -30,69 +25,45 @@ public final class VisibilityEngine {
             return true;
         }
 
-        VisibilityStats.entityCheck();
+        MinecraftClient client = MinecraftClient.getInstance();
 
         /*
-         * Игрока никогда не скрываем.
+         * Никогда не скрываем игрока.
          */
         if (entity == client.player) {
             return true;
         }
 
-        /*
-         * Некоторые сущности могут иметь нестандартный
-         * render distance. Не вмешиваемся в них.
-         */
-        EntityRenderer<?> renderer =
-                client.getEntityRenderDispatcher()
-                        .getRenderer(entity);
+        VisibilityStats.entityCheck();
 
-        if (renderer == null) {
-            return true;
-        }
-
-        /*
-         * Сначала обычная frustum-проверка.
-         */
         Box box = entity.getBoundingBox();
 
-        if (!frustum.isVisible(box)) {
-            VisibilityStats.entityCulled();
-
-            updateCache(entity, false);
-
-            return false;
-        }
+        /*
+         * Перемещаем bounding box относительно
+         * координат, переданных vanilla renderer.
+         */
+        Box renderBox = box.offset(
+                x - entity.getX(),
+                y - entity.getY(),
+                z - entity.getZ()
+        );
 
         /*
-         * Если объект находится в поле зрения,
-         * сохраняем результат.
+         * Основной Frustum Culling.
+         *
+         * Если bounding box полностью вне
+         * камеры — entity вообще не должна
+         * проходить дальше в rendering pipeline.
          */
-        updateCache(entity, true);
+        if (!frustum.isVisible(renderBox)) {
+            VisibilityStats.entityCulled();
+            return false;
+        }
 
         return true;
     }
 
-    private static void updateCache(
-            Entity entity,
-            boolean visible
-    ) {
-        CACHE.put(
-                entity,
-                new CacheEntry(
-                        visible,
-                        System.currentTimeMillis()
-                )
-        );
-    }
-
     public static void clearCache() {
-        CACHE.clear();
-    }
-
-    private record CacheEntry(
-            boolean visible,
-            long timestamp
-    ) {
+        // Cache подключим следующим этапом.
     }
 }
